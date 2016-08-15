@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
 
 # ircecho.py
 # Copyright (C) 2011 : Robert L Szkutak II - http://robertszkutak.com
@@ -20,12 +20,14 @@
 import sys
 import socket
 import string
+import time 
+import urllib2
 
 HOST = "irc.freenode.net"
 PORT = 6667
 
-NICK = "artbot2"
-IDENT = "artbot2"
+NICK = "artbot"
+IDENT = "artbot"
 REALNAME = "palle"
 MASTER = "plix"
 MESSAGE = "hello konsthack"
@@ -34,15 +36,24 @@ readbuffer = ""
 s=socket.socket( )
 s.connect((HOST, PORT))
 
-s.send(bytes("NICK %s\r\n" % NICK, "UTF-8"))
-s.send(bytes("USER %s %s bla :%s\r\n" % (IDENT, HOST, REALNAME), "UTF-8"))
-s.send(bytes("JOIN #konsthack\r\n", "UTF-8"));
-s.send(bytes("PRIVMSG %s :Hello Master\r\n" % MASTER, "UTF-8"))
-s.send(bytes("PRIVMSG %s :Hello Master\r\n" % MESSAGE, "UTF-8"))
-s.send(bytes("PRIVMSG #konsthack : %s\r\n" % MESSAGE, "UTF-8"))
+s.send("NICK %s\r\n" % NICK)
+s.send("USER %s %s bla :%s\r\n" % (IDENT, HOST, REALNAME))
+s.send("JOIN #konsthack\r\n");
+s.send("PRIVMSG %s :Hello Master\r\n" % MASTER)
+s.send("PRIVMSG #konsthack : %s\r\n" % MESSAGE)
 
+
+def getmessages(): 
+    link = "https://raw.githubusercontent.com/konsthack/konsthackircbot/master/messages.rm"
+    data = urllib2.urlopen(link)
+    for the_message in data.readlines():
+        s.send("PRIVMSG #konsthack : %s\r\n" % the_message)
+
+    print ("messages")
+
+ 
 while 1:
-    readbuffer = readbuffer+s.recv(1024).decode("UTF-8")
+    readbuffer = readbuffer+s.recv(1024)
     temp = str.split(readbuffer, "\n")
     readbuffer=temp.pop( )
 
@@ -69,3 +80,5 @@ while 1:
             s.send(bytes("PRIVMSG %s %s \r\n" % (sender, message), "UTF-8"))
         for index, i in enumerate(line):
             print(line[index])
+        getmessages()
+        time.sleep(100)
